@@ -77,7 +77,10 @@ python3 skills_repo_client.py upload --id my-skill --file ./SKILL.md --desc "描
 python3 skills_repo_client.py upload --id my-skill --dir ./folder/ --desc "描述" --tags "tag1,tag2"
 ```
 
-`--dir` 会上传目录下的所有文件（包括 SKILL.md 和辅助文件如 helper.py 等）。
+**约束：**
+- `--file` 必须是 `.md` 或 `.mdc` 文件
+- `--dir` 目录下必须包含 `SKILL.md`
+- `--id` 格式：`^[a-z0-9]+(-[a-z0-9]+)*$`，客户端和服务端双重校验
 
 ### 下载
 
@@ -127,7 +130,10 @@ curl -s -b /tmp/cookies.txt {{SKILLS_REPO_URL}}/api/tags
 
 ## 注意事项
 
+- 单文件上传仅支持 `.md`/`.mdc` 扩展名
+- 目录上传必须包含 `SKILL.md` 文件
 - 上传前确保 skill_id 未被占用（重复返回 409）
+- skill_id 需匹配 `^[a-z0-9]+(-[a-z0-9]+)*$`
 - 标签支持中文，逗号分隔
 - 认证：CLI 自动处理 cookie/token，无需手动登录
 - 下载解压后对应目录结构: `skills/<id>/SKILL.md`

@@ -22,6 +22,7 @@ import argparse
 import http.cookiejar
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.parse
@@ -221,8 +222,15 @@ def cmd_get(args):
         print(result.get('content', ''))
 
 
+SKILL_ID_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+
+
 def cmd_upload(args):
     cfg = resolve_config(args)
+    if not SKILL_ID_RE.match(args.id):
+        print(f"Invalid skill ID: '{args.id}'. Must match a-z0-9 with single hyphens (e.g. my-skill)", file=sys.stderr)
+        sys.exit(1)
+
     import mimetypes
 
     boundary = "----FormBoundary" + os.urandom(16).hex()
@@ -234,11 +242,17 @@ def cmd_upload(args):
         if not fpath.exists():
             print(f"File not found: {args.file}", file=sys.stderr)
             sys.exit(1)
+        if fpath.suffix.lower() not in (".md", ".mdc"):
+            print("Single file upload must be a .md or .mdc file", file=sys.stderr)
+            sys.exit(1)
         body_parts.append(_make_form_part(boundary, "files", fpath.read_bytes(), fpath.name))
     elif args.dir:
         dpath = Path(args.dir)
         if not dpath.is_dir():
             print(f"Directory not found: {args.dir}", file=sys.stderr)
+            sys.exit(1)
+        if not (dpath / "SKILL.md").exists():
+            print("Directory must contain SKILL.md", file=sys.stderr)
             sys.exit(1)
         for fp in sorted(dpath.rglob("*")):
             if fp.is_file():

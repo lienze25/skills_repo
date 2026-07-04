@@ -4,6 +4,7 @@ import hashlib
 import hmac
 import io
 import json
+import os
 import re
 import secrets
 import shutil
@@ -685,7 +686,7 @@ async def api_download_all_skills(username: str = Depends(optional_auth)):
             if not skill_dir.is_dir():
                 continue
             for fpath in skill_dir.rglob("*"):
-                if fpath.is_file():
+                if fpath.is_file() and fpath.name != "SKILL.json":
                     arcname = str(fpath.relative_to(SKILLS_DIR))
                     zf.write(fpath, arcname)
     buf.seek(0)
@@ -750,11 +751,16 @@ async def api_upload_skill(
         ext = Path(filename).suffix.lower()
         if ext in SUPPORTED_EXTENSIONS:
             return await _handle_md_upload(username, skill_id, description, tags, f)
+        raise HTTPException(status_code=400, detail="Single file upload must be a .md or .mdc file")
 
     return await _handle_folder_upload(username, skill_id, description, tags, files)
 
 
 async def _handle_folder_upload(uploader: str, skill_id: str, description: str, tags: str, files: List[UploadFile]) -> dict:
+    has_skill_md = any(Path(f.filename or "").name == "SKILL.md" for f in files)
+    if not has_skill_md:
+        raise HTTPException(status_code=400, detail="Folder upload must contain a SKILL.md file")
+
     first_path = files[0].filename or ""
     parts = Path(first_path).parts
 
@@ -770,13 +776,18 @@ async def _handle_folder_upload(uploader: str, skill_id: str, description: str, 
     if skill_dir.exists():
         raise HTTPException(status_code=409, detail=f"Skill '{skill_id}' already exists")
     skill_dir.mkdir(parents=True)
+    resolved_skill_dir = skill_dir.resolve()
 
     for f in files:
         fname = f.filename or ""
         rel = Path(fname)
+        if ".." in rel.parts:
+            raise HTTPException(status_code=400, detail=f"Invalid file path: {fname}")
         if len(rel.parts) > 1 and rel.parts[0] == parts[0]:
             rel = Path(*rel.parts[1:])
-        target = skill_dir / rel
+        target = (skill_dir / rel).resolve()
+        if not (str(target).startswith(str(resolved_skill_dir) + os.sep) or target == resolved_skill_dir):
+            raise HTTPException(status_code=400, detail=f"Invalid file path: {fname}")
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(await f.read())
 
@@ -850,7 +861,7 @@ async def api_download_skill(skill_id: str, username: str = Depends(optional_aut
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
         for fpath in skill_dir.rglob("*"):
-            if fpath.is_file():
+            if fpath.is_file() and fpath.name != "SKILL.json":
                 arcname = str(fpath.relative_to(SKILLS_DIR))
                 zf.write(fpath, arcname)
     buf.seek(0)
