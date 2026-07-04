@@ -947,6 +947,34 @@ async def api_delete_skill(skill_id: str, username: str = Depends(optional_auth)
     return {"deleted": skill_id}
 
 
+@app.get("/api/backup/skills")
+async def api_backup_skills(username: str = Depends(optional_auth)):
+    _check_operation_permission(username, "download_permission")
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        if SKILLS_DIR.exists():
+            for skill_dir in sorted(SKILLS_DIR.iterdir()):
+                if not skill_dir.is_dir():
+                    continue
+                for fpath in skill_dir.rglob("*"):
+                    if fpath.is_file() and fpath.name != "SKILL.json":
+                        arcname = str(fpath.relative_to(SKILLS_DIR))
+                        zf.write(fpath, arcname)
+    buf.seek(0)
+    zip_bytes = buf.getvalue()
+    md5_hash = hashlib.md5(zip_bytes).hexdigest()
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"skills_backup_{timestamp}.zip"
+    return StreamingResponse(
+        io.BytesIO(zip_bytes),
+        media_type="application/zip",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}",
+            "X-MD5-Checksum": md5_hash,
+        },
+    )
+
+
 if __name__ == "__main__":
     import sys
 
