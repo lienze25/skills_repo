@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skills Repository</title>
+<style>
+:root {
+  --bg: #0a0e14;
+  --bg2: #131820;
+  --bg3: #1a202c;
+  --border: #262d38;
+  --text: #cdd6e0;
+  --text2: #6b7280;
+  --accent: #3b82f6;
+  --accent2: #2563eb;
+  --green: #22c55e;
+  --red: #ef4444;
+  --red2: #dc2626;
+  --orange: #f59e0b;
+  --purple: #8b5cf6;
+  --cyan: #06b6d4;
+  --radius: 10px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg); color: var(--text); min-height: 100vh;
+  line-height: 1.5;
+}
+
+.topbar{
+  position: sticky; top:0; z-index:50;
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  padding: 12px 24px; display: flex; align-items: center; gap: 16px;
+  backdrop-filter: blur(12px);
+}
+.topbar .brand{ font-size: 18px; font-weight: 700; letter-spacing: -.3px; }
+.topbar .brand span{ color: var(--accent); }
+.topbar .nav-tabs{ display:flex; gap:4px; }
+.topbar .nav-tab{
+  padding:7px 16px; border-radius:8px; font-size:13px; font-weight:500;
+  cursor:pointer; color:var(--text2); transition:all .15s; border:none; background:none;
+}
+.topbar .nav-tab:hover{ color:var(--text); background:var(--bg3); }
+.topbar .nav-tab.active{ color:var(--accent); background:rgba(59,130,246,.1); }
+.topbar .spacer{ flex:1; }
+.topbar input{
+  padding: 9px 14px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--bg3); color: var(--text); font-size: 13px; outline: none;
+  transition: border-color .2s;
+}
+.topbar input:focus{ border-color: var(--accent); }
+.topbar input[type=text]:first-of-type{ width: 260px; }
+.topbar input[type=text]:last-of-type{ width: 140px; }
+.topbar .btn{
+  padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 500;
+  cursor: pointer; border: 1px solid var(--border); background: var(--bg3);
+  color: var(--text); transition: all .15s; text-decoration: none; display: inline-flex; align-items:center; gap:4px;
+}
+.topbar .btn:hover{ background: var(--border); }
+.topbar .btn-primary{ background: var(--accent); color:#fff; border-color:var(--accent); }
+.topbar .btn-primary:hover{ background: var(--accent2); }
+
+.container{ max-width: 1100px; margin: 0 auto; padding: 24px 20px; }
+
+.upload-zone{
+  border: 2px dashed var(--border); border-radius: var(--radius);
+  padding: 40px 24px; text-align: center; cursor: pointer;
+  transition: all .2s; margin-bottom: 24px; background: var(--bg2);
+}
+.upload-zone:hover, .upload-zone.dragover{
+  border-color: var(--accent); background: rgba(59,130,246,.06);
+}
+.upload-zone .icon{ font-size: 36px; margin-bottom: 10px; opacity: .6; }
+.upload-zone .title{ font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+.upload-zone .hint{ color: var(--text2); font-size: 12px; }
+.upload-zone input[type=file]{ display:none; }
+
+.toolbar{
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 16px; flex-wrap: wrap; gap: 12px;
+}
+.toolbar .count{ color: var(--text2); font-size: 13px; }
+
+.skill-grid{ display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; }
+
+.skill-card{
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 20px; transition: all .2s; display: flex; flex-direction: column; gap: 14px;
+}
+.skill-card:hover{ border-color: #3b4a62; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,.2); }
+.skill-card .card-header h3{ font-size: 15px; margin-bottom: 4px; }
+.skill-card .card-header p{ color: var(--text2); font-size: 13px; display: -webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.skill-card .card-tags{ display: flex; flex-wrap: wrap; gap: 5px; min-height: 22px; }
+.tag{
+  padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 500;
+  cursor: pointer; transition: all .15s;
+}
+.tag:hover{ opacity: .8; }
+.tag-selected{ outline: 2px solid var(--accent); outline-offset: 1px; }
+.skill-card .card-footer{
+  display: flex; justify-content: space-between; align-items: center;
+  border-top: 1px solid var(--border); padding-top: 12px; margin-top: auto;
+}
+.skill-card .card-meta{ display: flex; gap: 12px; font-size: 12px; color: var(--text2); align-items: center; }
+.skill-card .card-meta span{ display: flex; align-items: center; gap: 3px; }
+.skill-card .card-actions{ display: flex; gap: 6px; }
+.skill-card .card-actions .btn-sm{
+  padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 500;
+  cursor: pointer; border: 1px solid var(--border); background: var(--bg3);
+  color: var(--text); transition: all .15s; text-decoration: none;
+}
+.skill-card .card-actions .btn-sm:hover{ background: var(--border); }
+.skill-card .card-actions .btn-danger{ border-color: rgba(239,68,68,.3); color: var(--red); }
+.skill-card .card-actions .btn-danger:hover{ background: rgba(239,68,68,.1); }
+
+.empty{ text-align: center; padding: 80px 20px; color: var(--text2); grid-column: 1/-1; }
+.empty .icon{ font-size: 48px; margin-bottom: 12px; opacity: .3; }
+
+.detail-overlay{ display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:99; }
+.detail-overlay.open{ display:block; }
+.detail-panel{
+  display:none; position:fixed; top:0; right:0; bottom:0; width:540px; max-width:100vw;
+  background:var(--bg2); border-left:1px solid var(--border); z-index:100;
+  padding:28px; overflow-y:auto; box-shadow:-8px 0 32px rgba(0,0,0,.5);
+}
+.detail-panel.open{ display:block; }
+.detail-panel .close-btn{
+  position:absolute; top:16px; right:16px; background:none; border:none;
+  color:var(--text2); font-size:22px; cursor:pointer; padding:4px 8px;
+  border-radius:6px; transition:all .15s;
+}
+.detail-panel .close-btn:hover{ color:var(--text); background:var(--bg3); }
+.detail-panel h1{ font-size:20px; margin-bottom:4px; }
+.detail-panel .detail-desc{ color:var(--text2); font-size:13px; margin-bottom:12px; }
+.detail-panel .detail-meta{ display:flex; gap:16px; font-size:12px; color:var(--text2); margin-bottom:12px; flex-wrap:wrap; }
+.detail-panel .detail-tags{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; align-items:center; }
+.detail-panel .tag-edit{ display:none; gap:6px; margin-bottom:12px; align-items:center; flex-wrap:wrap; }
+.detail-panel .tag-edit.open{ display:flex; }
+.detail-panel .tag-edit input{
+  flex:1; padding:8px 12px; border-radius:6px; border:1px solid var(--border);
+  background:var(--bg); color:var(--text); font-size:13px; outline:none;
+}
+.detail-panel .tag-edit input:focus{ border-color:var(--accent); }
+.detail-content{ font-size:14px; line-height:1.7; }
+.detail-content h2{ font-size:16px; margin:20px 0 8px; padding-bottom:6px; border-bottom:1px solid var(--border); }
+.detail-content h3{ font-size:14px; margin:16px 0 6px; }
+.detail-content p{ margin:8px 0; }
+.detail-content pre{
+  background:var(--bg); border:1px solid var(--border); border-radius:8px;
+  padding:14px 16px; overflow-x:auto; font-size:13px; margin:10px 0;
+  line-height:1.5;
+}
+.detail-content code{ font-family:"SF Mono","Fira Code","Cascadia Code",monospace; font-size:.9em; }
+.detail-content pre code{ background:none; padding:0; }
+.detail-content ul, .detail-content ol{ margin:8px 0; padding-left:20px; }
+.detail-content li{ margin:2px 0; }
+
+.user-overlay{ display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:101; }
+.user-overlay.open{ display:block; }
+.user-panel{
+  display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+  background:var(--bg2); border:1px solid var(--border); border-radius:12px;
+  padding:28px; z-index:102; width:420px; max-width:90vw; max-height:80vh;
+  overflow-y:auto; box-shadow:0 12px 40px rgba(0,0,0,.6);
+}
+.user-panel.open{ display:block; }
+.user-panel h2{ font-size:18px; margin-bottom:20px; }
+.user-row{ display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border); gap:8px; }
+.user-row:last-of-type{ border-bottom:none; }
+.user-row .name{ font-size:14px; font-weight:500; flex:1; }
+.add-user-form{ display:flex; gap:8px; margin-top:16px; padding-top:16px; border-top:1px solid var(--border); }
+.add-user-form input{ flex:1; padding:9px 12px; border-radius:8px; border:1px solid var(--border); background:var(--bg3); color:var(--text); font-size:13px; outline:none; min-width:0; }
+.add-user-form input:focus{ border-color:var(--accent); }
+.change-pw-form{ display:none; gap:8px; margin-top:4px; }
+.change-pw-form.open{ display:flex; }
+.change-pw-form input{ padding:7px 10px; border-radius:6px; border:1px solid var(--border); background:var(--bg3); color:var(--text); font-size:13px; outline:none; min-width:0; }
+
+.btn-sm{ padding:5px 12px; border-radius:6px; font-size:12px; font-weight:500; cursor:pointer; border:1px solid var(--border); background:var(--bg3); color:var(--text); transition:all .15s; }
+.btn-sm:hover{ background:var(--border); }
+.btn-primary-sm{ background:var(--accent); color:#fff; border-color:var(--accent); }
+.btn-primary-sm:hover{ background:var(--accent2); }
+.btn-danger-sm{ border-color:rgba(239,68,68,.3); color:var(--red); }
+.btn-danger-sm:hover{ background:rgba(239,68,68,.1); }
+.perm-toggles{ display:flex; gap:8px; align-items:center; margin-top:4px; }
+.perm-toggle{ display:flex; align-items:center; gap:3px; font-size:11px; color:var(--text2); cursor:pointer; }
+.perm-toggle input{ width:13px; height:13px; cursor:pointer; accent-color:var(--accent); }
+.tag-bar{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; align-items:center; }
+.tag-chip{
+  padding:3px 12px; border-radius:20px; font-size:11px; font-weight:500;
+  background:var(--bg2); border:1px solid var(--border); color:var(--text2);
+  cursor:pointer; transition:all .15s; white-space:nowrap;
+}
+.tag-chip:hover{ border-color:var(--accent); color:var(--text); }
+.tag-chip.active{ background:var(--accent); color:#fff; border-color:var(--accent); }
+
+.workshop{ display:none; position:absolute; top:57px; left:0; right:0; bottom:0; }
+.workshop.open{ display:flex; }
+.workshop-chat{
+  width:380px; min-width:280px; background:var(--bg2); border-right:1px solid var(--border);
+  display:flex; flex-direction:column; overflow:hidden;
+}
+.workshop-chat .chat-header{
+  padding:14px 18px; border-bottom:1px solid var(--border); font-size:14px; font-weight:600;
+}
+.workshop-chat .chat-messages{
+  flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px;
+}
+.workshop-chat .chat-input-row{
+  padding:12px 16px; border-top:1px solid var(--border); display:flex; gap:8px;
+}
+.workshop-chat .chat-input-row input{
+  flex:1; padding:10px 14px; border-radius:8px; border:1px solid var(--border);
+  background:var(--bg); color:var(--text); font-size:13px; outline:none;
+}
+.workshop-chat .chat-input-row input:focus{ border-color:var(--accent); }
+.chat-msg{ padding:10px 14px; border-radius:8px; font-size:13px; line-height:1.6; max-width:90%; }
+.chat-msg.user{ background:var(--accent); color:#fff; align-self:flex-end; }
+.chat-msg.assistant{ background:var(--bg3); border:1px solid var(--border); color:var(--text); }
+.chat-msg.assistant p{ margin:6px 0; }
+.chat-msg.assistant code{ font-family:monospace; font-size:.9em; background:rgba(0,0,0,.3); padding:1px 5px; border-radius:3px; }
+.chat-msg.assistant pre{ background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:10px 14px; overflow-x:auto; font-size:12px; margin:8px 0; }
+.chat-placeholder{ color:var(--text2); text-align:center; padding:60px 20px; }
+.workshop-files{
+  flex:1; background:var(--bg); display:flex; overflow:hidden;
+}
+.workshop-files .file-sidebar{
+  width:200px; min-width:160px; background:var(--bg2); border-right:1px solid var(--border);
+  display:flex; flex-direction:column; overflow-y:auto;
+}
+.file-sidebar .fs-header{
+  padding:14px 16px; border-bottom:1px solid var(--border); font-size:13px; font-weight:600; color:var(--text2);
+}
+.file-sidebar .file-item{
+  padding:10px 16px; cursor:pointer; display:flex; align-items:center; gap:8px;
+  border-bottom:1px solid var(--border); transition:all .1s; font-size:13px;
+}
+.file-sidebar .file-item:hover{ background:rgba(59,130,246,.06); }
+.file-sidebar .file-item.active{ background:rgba(59,130,246,.1); border-right:2px solid var(--accent); color:var(--text); }
+.file-item .fi-icon{
+  width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:700; flex-shrink:0;
+}
+.fi-icon.md{ background:rgba(59,130,246,.15); color:#60a5fa; }
+.fi-icon.py{ background:rgba(34,197,94,.15); color:#4ade80; }
+.fi-icon.sh{ background:rgba(245,158,11,.15); color:#fbbf24; }
+.fi-icon.json{ background:rgba(139,92,246,.15); color:#a78bfa; }
+.fi-icon.yml,.fi-icon.yaml{ background:rgba(236,72,153,.15); color:#f472b6; }
+.fi-icon.generic{ background:rgba(107,114,128,.15); color:#9ca3af; }
+.file-item .fi-info{ flex:1; min-width:0; }
+.file-item .fi-name{ font-size:13px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.file-item .fi-ext{ font-size:11px; color:var(--text2); }
+
+.workshop-files .file-viewer{
+  flex:1; display:flex; flex-direction:column; overflow:hidden;
+}
+.file-viewer .fv-header{
+  padding:12px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between;
+}
+.file-viewer .fv-title{ font-size:14px; font-weight:600; display:flex; align-items:center; gap:8px; }
+.file-viewer .fv-title code{ font-size:12px; color:var(--text2); background:var(--bg2); padding:2px 8px; border-radius:4px; font-weight:400; }
+.file-viewer .fv-code{
+  flex:1; overflow-y:auto; padding:20px 24px; font-family:"SF Mono","Fira Code","Cascadia Code",monospace;
+  font-size:13px; line-height:1.7; white-space:pre-wrap; word-wrap:break-word; color:var(--text);
+}
+.fv-code .line{ display:flex; }
+.fv-code .ln{
+  color:var(--text2); text-align:right; padding-right:16px; user-select:none; min-width:40px;
+  font-size:12px; opacity:.5;
+}
+.fv-empty{
+  flex:1; display:flex; align-items:center; justify-content:center; color:var(--text2);
+  flex-direction:column; gap:8px;
+}
+.fv-empty .icon{ font-size:48px; opacity:.2; }
+
+.toast{
+  position:fixed; bottom:24px; right:24px; z-index:200;
+  padding:12px 20px; border-radius:8px; font-size:13px; font-weight:500;
+  color:#fff; animation:toast-in .3s ease; max-width:360px;
+  box-shadow:0 4px 16px rgba(0,0,0,.4);
+}
+.toast.success{ background:#16a34a; }
+.toast.error{ background:var(--red2); }
+@keyframes toast-in{ from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+@media(max-width:700px){
+  .topbar{ flex-wrap:wrap; padding:12px 16px; }
+  .topbar input[type=text]:first-of-type, .topbar input[type=text]:last-of-type{ width:100%; }
+  .skill-grid{ grid-template-columns:1fr; }
+  .detail-panel{ width:100%; }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">&#9881; <span>Skills</span> Repo</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" id="tabMarket" onclick="switchTab('market')">市场</button>
+    <button class="nav-tab" id="tabWorkshop" onclick="switchTab('workshop')">工坊</button>
+  </div>
+  <div class="spacer"></div>
+  <input type="text" id="searchInput" placeholder="搜索名称或描述...">
+  <input type="text" id="tagFilter" placeholder="标签筛选...">
+  <button class="btn" onclick="openUserPanel()" id="userBtn" style="display:none">管理用户</button>
+  <a class="btn" href="/api/ai-skill">下载客户端</a>
+  <button class="btn" onclick="logout()">退出</button>
+</header>
+
+<div class="container" id="marketTab">
+  <div class="upload-zone" id="uploadArea">
+    <div class="icon">&#128230;</div>
+    <div class="title">拖拽文件/文件夹到此处或点击上传</div>
+    <div class="hint">支持 .md / .mdc 文件，或包含 SKILL.md 的文件夹</div>
+    <input type="file" id="fileInput" accept=".md,.mdc" multiple>
+    <input type="file" id="folderInput" webkitdirectory multiple style="display:none">
+  </div>
+
+  <div class="toolbar">
+    <span class="count" id="skillCount">加载中...</span>
+  </div>
+  <div class="tag-bar" id="tagBar"></div>
+
+  <div class="skill-grid" id="skillList"></div>
+  <div class="empty" id="emptyState" style="display:none">
+    <div class="icon">&#128464;</div>
+    <p>暂无 Skill，上传一个开始吧</p>
+  </div>
+</div>
+
+<div class="workshop" id="workshopTab">
+  <div class="workshop-chat">
+    <div class="chat-header">AI 对话</div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-placeholder">
+        <div style="font-size:48px;margin-bottom:12px;opacity:.3">&#129302;</div>
+        <p>描述你想创建的 Skill，AI 会引导你逐步完善</p>
+      </div>
+    </div>
+    <div class="chat-input-row">
+      <input type="text" id="chatInput" placeholder="输入消息..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){sendMessage()}">
+      <button class="btn btn-primary" onclick="sendMessage()" id="chatSendBtn">发送</button>
+    </div>
+  </div>
+  <div class="workshop-files" id="filesPanel">
+    <div class="file-sidebar" id="fileSidebar">
+      <div class="fs-header">文件列表</div>
+    </div>
+    <div class="file-viewer" id="fileViewer">
+      <div class="fv-header">
+        <span class="fv-title" id="fvTitle"></span>
+        <div style="display:flex;gap:8px;flex-shrink:0;margin-left:auto">
+          <button class="btn-sm btn-primary-sm" id="createSkillBtn" style="visibility:hidden" onclick="createAiSkill()">确认创建</button>
+          <button class="btn-sm" onclick="resetWorkshop()">重置</button>
+        </div>
+      </div>
+      <div class="fv-code" id="fvCode"></div>
+      <div class="fv-empty" id="fvEmpty">
+        <div class="icon">&#128196;</div>
+        <p>生成的文件将显示在这里</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="detail-overlay" id="detailOverlay"></div>
+<div class="detail-panel" id="detailPanel">
+  <button class="close-btn" id="detailClose">&times;</button>
+  <div id="detailContent"></div>
+</div>
+
+<div class="user-overlay" id="userOverlay"></div>
+<div class="user-panel" id="userPanel">
+  <h2>用户管理</h2>
+  <div id="userList"></div>
+  <div class="add-user-form">
+    <input type="text" id="newUsername" placeholder="新用户名">
+    <input type="password" id="newPassword" placeholder="密码">
+    <button class="btn-sm btn-primary-sm" onclick="addUser()">添加</button>
+  </div>
+  <div style="text-align:right;margin-top:16px">
+    <button class="btn-sm" onclick="closeUserPanel()">关闭</button>
+  </div>
+</div>
+
+<div class="user-overlay" id="uploadOverlay"></div>
+<div class="user-panel" id="uploadPanel">
+  <h2>上传 Skill</h2>
+  <div style="margin-bottom:12px;font-size:13px;color:var(--text2)" id="uploadFileName"></div>
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div>
+      <input type="text" id="uploadSkillId" placeholder="Skill ID（如 git-release）" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:14px;outline:none">
+      <div style="font-size:11px;color:var(--text2);margin-top:4px">格式: 小写字母数字，单连字符分隔，如 <code>my-skill</code></div>
+      <div id="idError" style="font-size:12px;color:var(--red);margin-top:2px;display:none"></div>
+    </div>
+    <input type="text" id="uploadDesc" placeholder="简介" required style="padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:14px;outline:none">
+    <input type="text" id="uploadTags" placeholder="标签，逗号分隔" required style="padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:14px;outline:none">
+    <div id="tagSuggestions" style="display:flex;flex-wrap:wrap;gap:5px"></div>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end">
+    <button class="btn-sm" onclick="closeUploadPanel()">取消</button>
+    <button class="btn-sm btn-primary-sm" id="uploadBtn" onclick="doUpload()">上传</button>
+  </div>
+</div>
+
+<script>
+const uploadArea = document.getElementById('uploadArea');
+const fileInput = document.getElementById('fileInput');
+const skillList = document.getElementById('skillList');
+const skillCount = document.getElementById('skillCount');
+const emptyState = document.getElementById('emptyState');
+const detailPanel = document.getElementById('detailPanel');
+const detailOverlay = document.getElementById('detailOverlay');
+const detailContent = document.getElementById('detailContent');
+const detailClose = document.getElementById('detailClose');
+const searchInput = document.getElementById('searchInput');
+const tagFilter = document.getElementById('tagFilter');
+
+let pendingFiles = [];
+let isFolderMode = false;
+let isAiUpload = false;
+
+const folderInput = document.getElementById('folderInput');
+
+uploadArea.addEventListener('click',()=>fileInput.click());
+fileInput.addEventListener('change',()=>handleFiles(fileInput.files));
+folderInput.addEventListener('change',()=>handleFiles(folderInput.files, true));
+uploadArea.addEventListener('dragover',e=>{e.preventDefault();uploadArea.classList.add('dragover')});
+uploadArea.addEventListener('dragleave',()=>uploadArea.classList.remove('dragover'));
+uploadArea.addEventListener('drop',e=>{
+  e.preventDefault();uploadArea.classList.remove('dragover');
+  const items = e.dataTransfer.items;
+  if(items && items.length>0){
+    const entry = items[0].webkitGetAsEntry();
+    if(entry && entry.isDirectory){
+      traverseDirectory(entry).then(files => handleFiles(files, true));
+      return;
+    }
+  }
+  if(e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+});
+
+async function traverseDirectory(entry){
+  const files = [];
+  async function walk(ent, prefix){
+    if(ent.isFile){
+      const file = await new Promise(resolve => ent.file(resolve));
+      Object.defineProperty(file, '_webkitRelativePath', {value: prefix + file.name, writable: true});
+      files.push(file);
+    }else if(ent.isDirectory){
+      const reader = ent.createReader();
+      const readAll = () => new Promise(resolve => {
+        const all = []; const read = () => reader.readEntries(entries => {
+          if(entries.length===0){resolve(all);return}
+          all.push(...entries); read();
+        }); read();
+      });
+      const children = await readAll();
+      for(const child of children) await walk(child, prefix + ent.name + '/');
+    }
+  }
+  await walk(entry, '');
+  return files;
+}
+
+function handleFiles(files, isFolder){
+  const arr = Array.from(files);
+  if(arr.length===0) return;
+  pendingFiles = arr;
+  isFolderMode = !!(isFolder || arr.length > 1);
+
+  if(isFolderMode){
+    const first = arr[0];
+    const relPath = first._webkitRelativePath || first.webkitRelativePath || first.name;
+    const parts = relPath.split('/');
+    const folderName = parts.length > 1 ? parts[0] : relPath.replace(/\.[^.]+$/,'');
+    document.getElementById('uploadFileName').textContent = '文件夹: ' + folderName + ' (' + arr.length + ' 个文件)';
+    document.getElementById('uploadSkillId').value = slugify(folderName);
+    document.getElementById('uploadDesc').value = '';
+  }else{
+    const f = arr[0];
+    document.getElementById('uploadFileName').textContent = f.name;
+    const reader = new FileReader();
+    reader.onload = function(e){
+      const {name, desc} = parseFrontmatter(e.target.result);
+      document.getElementById('uploadSkillId').value = slugify(name || f.name.replace(/\.[^.]+$/,''));
+      document.getElementById('uploadDesc').value = desc || '';
+      validateSkillId();
+    };
+    reader.onerror = function(){
+      document.getElementById('uploadSkillId').value = slugify(f.name.replace(/\.[^.]+$/,''));
+      document.getElementById('uploadDesc').value = '';
+      validateSkillId();
+    };
+    reader.readAsText(f);
+  }
+  document.getElementById('uploadTags').value = '';
+  loadTagSuggestions('tagSuggestions', 'uploadTags');
+  document.getElementById('uploadPanel').classList.add('open');
+  document.getElementById('uploadOverlay').classList.add('open');
+}
+
+async function loadTagSuggestions(containerId, inputId){
+  const container = document.getElementById(containerId);
+  const input = document.getElementById(inputId);
+  try{
+    const res = await fetch('/api/tags');
+    if(!res.ok) return;
+    const tags = await res.json();
+    container.innerHTML = '';
+    for(const tag of tags){
+      const chip = document.createElement('span');
+      chip.className = 'tag';
+      chip.style.cssText = tagStyle(tag);
+      chip.textContent = tag;
+      chip.style.cursor = 'pointer';
+      chip.addEventListener('click', function(){
+        if(this.classList.contains('tag-selected')){
+          this.classList.remove('tag-selected');
+          removeTagFromInput(input, tag);
+        }else{
+          this.classList.add('tag-selected');
+          addTagToInput(input, tag);
+        }
+      });
+      container.appendChild(chip);
+    }
+    // highlight already-selected tags
+    updateTagHighlights(container, input);
+  }catch(e){}
+}
+
+function addTagToInput(input, tag){
+  const current = input.value.split(',').map(t => t.trim()).filter(t => t);
+  if(!current.includes(tag)){
+    current.push(tag);
+    input.value = current.join(', ');
+  }
+}
+function removeTagFromInput(input, tag){
+  const current = input.value.split(',').map(t => t.trim()).filter(t => t && t !== tag);
+  input.value = current.join(', ');
+}
+function updateTagHighlights(container, input){
+  const selected = input.value.split(',').map(t => t.trim()).filter(t => t);
+  for(const chip of container.children){
+    if(selected.includes(chip.textContent)){
+      chip.classList.add('tag-selected');
+    }else{
+      chip.classList.remove('tag-selected');
+    }
+  }
+}
+// Sync highlights on input change
+document.getElementById('uploadTags').addEventListener('input', function(){
+  updateTagHighlights(document.getElementById('tagSuggestions'), this);
+});
+
+function slugify(name){
+  let s = name.replace(/[^a-zA-Z0-9\s-]/g, '').toLowerCase();
+  s = s.replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+  return s || 'skill';
+}
+
+const SKILL_ID_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+function validateSkillId(){
+  const id = document.getElementById('uploadSkillId').value.trim();
+  const valid = id.length >= 1 && id.length <= 64 && SKILL_ID_RE.test(id);
+  const err = document.getElementById('idError');
+  const btn = document.getElementById('uploadBtn');
+  if(!id){
+    err.style.display = 'none'; btn.disabled = false;
+  }else if(!valid){
+    err.textContent = 'ID 格式错误：需为小写字母数字，单连字符分隔（如 my-skill）';
+    err.style.display = 'block'; btn.disabled = true;
+  }else{
+    err.style.display = 'none'; btn.disabled = false;
+  }
+  return valid;
+}
+document.getElementById('uploadSkillId').addEventListener('input', validateSkillId);
+
+function parseFrontmatter(content){
+  let name = '', desc = '';
+  const lines = content.split('\n');
+  for(const line of lines){
+    const t = line.trim();
+    if(t.startsWith('# ') && !name){ name = t.slice(2).trim(); }
+    else if(t && !t.startsWith('#') && !desc){ desc = t; }
+    if(name && desc) break;
+  }
+  return {name, desc};
+}
+
+async function doUpload(){
+  const skillId = document.getElementById('uploadSkillId').value.trim();
+  if(!skillId){toast('请输入 Skill ID','error');return}
+  if(!validateSkillId()){toast('Skill ID 格式不正确','error');return}
+  const desc = document.getElementById('uploadDesc').value.trim();
+  if(!desc){toast('请输入简介','error');return}
+  const tags = document.getElementById('uploadTags').value.trim();
+  if(!tags){toast('请输入标签','error');return}
+  const fd = new FormData();
+  for(const f of pendingFiles){
+    const fname = f._webkitRelativePath || f.webkitRelativePath || f.name;
+    fd.append('files', f, fname);
+  }
+  fd.append('skill_id',skillId);
+  fd.append('description',desc);
+  fd.append('tags',tags);
+  const res = await fetch('/api/skills/upload',{method:'POST',body:fd});
+  if(authEnabled && res.status===401){window.location.href='/login';return}
+  if(res.ok){toast('上传成功','success')}else{const e=await res.json();toast(e.detail||'上传失败','error');return}
+  if(isAiUpload){ resetWorkshop(); switchTab('market'); }
+  closeUploadPanel();
+  loadSkills();
+}
+
+function closeUploadPanel(){
+  document.getElementById('uploadPanel').classList.remove('open');
+  document.getElementById('uploadOverlay').classList.remove('open');
+  pendingFiles = [];
+  isFolderMode = false;
+  isAiUpload = false;
+  fileInput.value = '';
+  folderInput.value = '';
+}
+document.getElementById('uploadOverlay').addEventListener('click',closeUploadPanel);
+detailClose.addEventListener('click',closeDetail);
+detailOverlay.addEventListener('click',closeDetail);
+
+let authEnabled = true;
+let defaultUser = 'admin';
+
+async function loadConfig(){
+  try{
+    const res = await fetch('/api/config');
+    if(res.ok){
+      const cfg = await res.json();
+      authEnabled = cfg.auth_enabled !== false;
+      defaultUser = cfg.default_user || 'admin';
+    }
+  }catch(e){}
+}
+
+async function loadSkills(){
+  try{
+    const q=encodeURIComponent(searchInput.value.trim());
+    const tag=encodeURIComponent(tagFilter.value.trim());
+    const res=await fetch('/api/skills?q='+q+'&tag='+tag);
+    if(authEnabled && res.status===401){window.location.href='/login';return}
+    const skills=await res.json();
+    skillCount.textContent='共 '+skills.length+' 个 Skill';
+    if(skills.length===0){skillList.innerHTML='';emptyState.style.display='block'}
+    else{emptyState.style.display='none';skillList.innerHTML=skills.map(s=>`
+      <div class="skill-card">
+        <div class="card-header">
+          <h3>${esc(s.name)}</h3>
+          <p>${esc(s.description||'暂无描述')}</p>
+        </div>
+        <div class="card-tags">${(s.tags||[]).map(t=>'<span class="tag" style="'+tagStyle(t)+'" onclick="event.stopPropagation();filterByTag(\''+jsesc(t)+'\')">'+esc(t)+'</span>').join('')}</div>
+        <div class="card-footer">
+          <div class="card-meta">
+            <span>${s.uploader||'—'}</span>
+            <span>${(s.downloads||0)} 次下载</span>
+            <span>${formatSize(s.size)}</span>
+          </div>
+          <div class="card-actions">
+            <button class="btn-sm" onclick="viewSkill('${esc(s.id)}')">查看</button>
+            <a class="btn-sm" href="/api/skills/${esc(s.id)}/download">下载</a>
+            <button class="btn-sm btn-danger" onclick="deleteSkill('${esc(s.id)}')">删除</button>
+          </div>
+        </div>
+      </div>
+    `).join('')}
+  }catch(e){skillCount.textContent='加载失败'}
+}
+
+async function viewSkill(id){
+  try{
+    const res=await fetch('/api/skills/'+id);
+    if(authEnabled && res.status===401){window.location.href='/login';return}
+    if(!res.ok){toast('Skill 不存在','error');return}
+    const s=await res.json();
+    const tags=(s.tags||[]).map(t=>'<span class="tag" style="'+tagStyle(t)+'" onclick="closeDetail();filterByTag(\''+jsesc(t)+'\')">'+esc(t)+'</span>').join(' ');
+    detailContent.innerHTML=`
+      <h1>${esc(s.name)}</h1>
+      <div class="detail-desc">${esc(s.description||'')}</div>
+      <div class="detail-meta">
+        <span>${s.uploader?'上传者: '+esc(s.uploader):''}</span>
+        <span>${(s.downloads||0)} 次下载</span>
+        <span>${s.uploaded_at?esc(s.uploaded_at.split('T')[0]):''}</span>
+      </div>
+      <div class="detail-tags" id="tagDisplay">${tags||'<span style="color:var(--text2);font-size:12px">无标签</span>'}</div>
+      <div class="tag-edit" id="tagEdit">
+        <input type="text" id="tagInput" value="${esc((s.tags||[]).join(', '))}" placeholder="标签，逗号分隔">
+        <button class="btn-sm btn-primary-sm" onclick="saveTags('${esc(s.id)}')">保存</button>
+        <button class="btn-sm" onclick="toggleTagEdit()">取消</button>
+        <div id="detailTagSuggestions" style="display:flex;flex-wrap:wrap;gap:5px;width:100%"></div>
+      </div>
+      <button class="btn-sm" onclick="toggleTagEdit()" id="editTagBtn">编辑标签</button>
+      <hr style="border-color:var(--border);margin:20px 0">
+      <div class="detail-content">${renderMarkdown(s.content)}</div>
+    `;
+    detailPanel.classList.add('open'); detailOverlay.classList.add('open');
+    loadTagSuggestions('detailTagSuggestions', 'tagInput');
+    document.getElementById('tagInput').addEventListener('input', function(){
+      updateTagHighlights(document.getElementById('detailTagSuggestions'), this);
+    });
+  }catch(e){toast('加载失败','error')}
+}
+
+function closeDetail(){
+  detailPanel.classList.remove('open'); detailOverlay.classList.remove('open');
+  const te=document.getElementById('tagEdit'); if(te)te.classList.remove('open');
+  const b=document.getElementById('editTagBtn'); if(b)b.style.display='';
+}
+
+function toggleTagEdit(){
+  const te=document.getElementById('tagEdit');
+  const b=document.getElementById('editTagBtn');
+  te.classList.toggle('open');
+  b.style.display=te.classList.contains('open')?'none':'';
+  if(te.classList.contains('open')){
+    loadTagSuggestions('detailTagSuggestions', 'tagInput');
+  }
+}
+
+async function saveTags(skillId){
+  const raw=document.getElementById('tagInput').value;
+  const tags=raw.split(',').map(t=>t.trim()).filter(t=>t);
+  const res=await fetch('/api/skills/'+encodeURIComponent(skillId)+'/tags',{
+    method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(tags)
+  });
+  if(!res.ok){toast('保存失败','error');return}
+  toast('标签已更新','success');
+  viewSkill(skillId);
+  loadSkills();
+}
+
+async function deleteSkill(id){
+  if(!confirm('确定删除 "'+id+'"?\n此操作不可恢复。'))return;
+  const res=await fetch('/api/skills/'+id,{method:'DELETE'});
+  if(authEnabled && res.status===401){window.location.href='/login';return}
+  if(!res.ok){toast('删除失败','error');return}
+  toast('已删除: '+id,'success');
+  loadSkills(); closeDetail();
+}
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function jsesc(s){return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}
+function tagColor(tag){
+  const colors = [
+    ['rgba(139,92,246,.15)','#a78bfa'],
+    ['rgba(6,182,212,.15)','#22d3ee'],
+    ['rgba(245,158,11,.15)','#fbbf24'],
+    ['rgba(34,197,94,.15)','#4ade80'],
+    ['rgba(239,68,68,.15)','#f87171'],
+    ['rgba(236,72,153,.15)','#f472b6'],
+  ];
+  let h = 0;
+  for(let i=0;i<tag.length;i++) h = ((h<<5)-h)+tag.charCodeAt(i);
+  return colors[Math.abs(h) % colors.length];
+}
+function tagStyle(tag){
+  const c = tagColor(tag);
+  return 'background:'+c[0]+';color:'+c[1];
+}
+function filterByTag(tag){
+  document.getElementById('tagFilter').value = tag;
+  renderTagBar(tag);
+  loadSkills();
+}
+function clearTagFilter(){
+  document.getElementById('tagFilter').value = '';
+  renderTagBar('');
+  loadSkills();
+}
+async function loadTagBar(){
+  try{
+    const res = await fetch('/api/tags');
+    if(!res.ok) return;
+    const tags = await res.json();
+    const bar = document.getElementById('tagBar');
+    bar.innerHTML = '<span class="tag-chip all'+(tagFilter.value?'':' active')+'" onclick="clearTagFilter()">全部</span>' +
+      tags.map(t=>'<span class="tag-chip'+(tagFilter.value===t?' active':'')+'" onclick="filterByTag(\''+jsesc(t)+'\')">'+esc(t)+'</span>').join('');
+  }catch(e){}
+}
+function renderTagBar(activeTag){
+  const chips = document.querySelectorAll('#tagBar .tag-chip');
+  chips.forEach(c => c.classList.toggle('active', c.textContent === (activeTag || '全部')));
+}
+function formatSize(b){if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(1)+' MB'}
+
+function renderMarkdown(t){
+  let h=esc(t);
+  h=h.replace(/^### (.+)$/gm,'<h3>$1</h3>');
+  h=h.replace(/^## (.+)$/gm,'<h2>$1</h2>');
+  h=h.replace(/^# (.+)$/gm,'<h1>$1</h1>');
+  h=h.replace(/```(\w*)\n([\s\S]*?)```/g,'<pre><code>$2</code></pre>');
+  h=h.replace(/`([^`]+)`/g,'<code>$1</code>');
+  h=h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  h=h.replace(/\*(.+?)\*/g,'<em>$1</em>');
+  h=h.replace(/^\- (.+)$/gm,'<li>$1</li>');
+  h=h.replace(/(<li>.*<\/li>\n?)+/g,'<ul>$&</ul>');
+  h=h.replace(/\n\n/g,'</p><p>');
+  return '<p>'+h+'</p>';
+}
+
+function toast(msg,type){
+  const el=document.createElement('div');
+  el.className='toast '+type;el.textContent=msg;
+  document.body.appendChild(el);setTimeout(()=>el.remove(),3000);
+}
+
+async function logout(){await fetch('/api/logout',{method:'POST'});window.location.href='/login'}
+
+const userOverlay=document.getElementById('userOverlay');
+const userPanel=document.getElementById('userPanel');
+const userList=document.getElementById('userList');
+userOverlay.addEventListener('click',closeUserPanel);
+
+async function openUserPanel(){
+  const res=await fetch('/api/users');
+  if(authEnabled && res.status===401){window.location.href='/login';return}
+  const users=await res.json();
+  userList.innerHTML=users.map(u=>`
+    <div class="user-row">
+      <div style="flex:1">
+        <div class="name">${esc(u.username)}${u.role==='admin'?' <span style="color:var(--accent);font-size:11px">(管理员)</span>':''}</div>
+        <div class="perm-toggles">
+          <label class="perm-toggle" title="上传">
+            <input type="checkbox" ${u.upload_permission!==false?'checked':''} onchange="saveUserPerm('${esc(u.username)}','upload_permission',this.checked)" ${u.role==='admin'?'disabled':''}>
+            上传
+          </label>
+          <label class="perm-toggle" title="下载">
+            <input type="checkbox" ${u.download_permission!==false?'checked':''} onchange="saveUserPerm('${esc(u.username)}','download_permission',this.checked)" ${u.role==='admin'?'disabled':''}>
+            下载
+          </label>
+          <label class="perm-toggle" title="删除">
+            <input type="checkbox" ${u.delete_permission!==false?'checked':''} onchange="saveUserPerm('${esc(u.username)}','delete_permission',this.checked)" ${u.role==='admin'?'disabled':''}>
+            删除
+          </label>
+        </div>
+      </div>
+      <button class="btn-sm" onclick="toggleChangePw('${esc(u.username)}')">改密</button>
+      <button class="btn-sm btn-danger-sm" onclick="deleteUser('${esc(u.username)}')">删除</button>
+    </div>
+    <div class="change-pw-form" id="pwForm_${esc(u.username)}">
+      <input type="password" id="pwInput_${esc(u.username)}" placeholder="新密码">
+      <button class="btn-sm btn-primary-sm" onclick="changePassword('${esc(u.username)}')">确认</button>
+      <button class="btn-sm" onclick="toggleChangePw('${esc(u.username)}')">取消</button>
+    </div>
+  `).join('');
+  userPanel.classList.add('open'); userOverlay.classList.add('open');
+}
+
+async function saveUserPerm(username, key, value){
+  const res = await fetch('/api/users/'+encodeURIComponent(username)+'/permissions', {
+    method:'PUT', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({[key]: value})
+  });
+  if(!res.ok){toast('保存失败','error');return}
+}
+
+function closeUserPanel(){userPanel.classList.remove('open');userOverlay.classList.remove('open')}
+function toggleChangePw(u){document.getElementById('pwForm_'+u).classList.toggle('open')}
+
+async function addUser(){
+  const u=document.getElementById('newUsername').value.trim();
+  const p=document.getElementById('newPassword').value;
+  if(!u||!p){toast('用户名和密码不能为空','error');return}
+  const fd=new FormData();fd.append('username',u);fd.append('password',p);
+  const res=await fetch('/api/users',{method:'POST',body:fd});
+  if(!res.ok){const e=await res.json();toast(e.detail||'添加失败','error');return}
+  toast('用户已添加','success');
+  document.getElementById('newUsername').value='';document.getElementById('newPassword').value='';
+  openUserPanel();
+}
+
+async function changePassword(u){
+  const p=document.getElementById('pwInput_'+u).value;
+  if(!p){toast('密码不能为空','error');return}
+  const fd=new FormData();fd.append('password',p);
+  const res=await fetch('/api/users/'+encodeURIComponent(u)+'/password',{method:'PUT',body:fd});
+  if(!res.ok){const e=await res.json();toast(e.detail||'修改失败','error');return}
+  toast('密码已修改','success');openUserPanel();
+}
+
+async function deleteUser(u){
+  if(!confirm('确定删除用户 "'+u+'"?'))return;
+  const res=await fetch('/api/users/'+encodeURIComponent(u),{method:'DELETE'});
+  if(!res.ok){const e=await res.json();toast(e.detail||'删除失败','error');return}
+  toast('用户已删除','success');openUserPanel();
+}
+
+async function init(){
+  await loadConfig();
+  loadSkills();
+  loadTagBar();
+  if(authEnabled){
+    checkRole();
+  } else {
+    document.querySelectorAll('.topbar .btn').forEach(b => {
+      if(b.textContent==='退出' || b.textContent==='管理用户') b.style.display='none';
+    });
+  }
+}
+init();
+
+async function checkRole(){
+  try{const res=await fetch('/api/me');if(res.ok){const me=await res.json();if(me.role==='admin')document.getElementById('userBtn').style.display=''}}catch(e){}
+}
+checkRole();
+
+let searchTimer;
+searchInput.addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(loadSkills,300)});
+tagFilter.addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{loadSkills();renderTagBar(tagFilter.value)},300)});
+
+let aiChatMessages = [];
+let aiGeneratedFiles = [];
+let aiSkillId = '';
+let aiDescription = '';
+let activeFileIndex = 0;
+
+function switchTab(tab){
+  document.getElementById('tabMarket').classList.toggle('active', tab==='market');
+  document.getElementById('tabWorkshop').classList.toggle('active', tab==='workshop');
+  document.getElementById('marketTab').style.display = tab==='market'?'block':'none';
+  document.getElementById('workshopTab').classList.toggle('open', tab==='workshop');
+  if(tab==='market'){
+    document.querySelectorAll('.topbar input[type=text]').forEach(i=>{i.style.display='';i.value=''});
+  }else{
+    document.querySelectorAll('.topbar input[type=text]').forEach(i=>i.style.display='none');
+    setTimeout(()=>document.getElementById('chatInput').focus(), 100);
+  }
+}
+
+function resetWorkshop(){
+  aiChatMessages = [];
+  aiGeneratedFiles = [];
+  aiSkillId = '';
+  aiDescription = '';
+  activeFileIndex = 0;
+  document.getElementById('chatMessages').innerHTML = '<div class="chat-placeholder"><div style="font-size:48px;margin-bottom:12px;opacity:.3">&#129302;</div><p>描述你想创建的 Skill，AI 会引导你逐步完善</p></div>';
+  document.getElementById('fileSidebar').innerHTML = '<div class="fs-header">文件列表</div>';
+  document.getElementById('fvCode').innerHTML = ''; document.getElementById('fvCode').style.display = 'none';
+  document.getElementById('fvEmpty').style.display = 'flex';
+  document.getElementById('fvTitle').innerHTML = '';
+  document.getElementById('createSkillBtn').style.visibility = 'hidden';
+  document.getElementById('chatSendBtn').disabled = false;
+}
+
+function renderChatMessages(){
+  const el = document.getElementById('chatMessages');
+  if(aiChatMessages.length === 0){
+    el.innerHTML = '<div class="chat-placeholder"><div style="font-size:48px;margin-bottom:12px;opacity:.3">&#129302;</div><p>描述你想创建的 Skill，AI 会引导你逐步完善</p></div>';
+    return;
+  }
+  el.innerHTML = aiChatMessages.map(m =>
+    '<div class="chat-msg '+m.role+'">'+chatMarkdown(m.content)+'</div>'
+  ).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+function chatMarkdown(t){
+  let h = esc(t);
+  h = h.replace(/```(\w*)\n([\s\S]*?)```/g,'<pre><code>$2</code></pre>');
+  h = h.replace(/`([^`]+)`/g,'<code>$1</code>');
+  h = h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  h = h.replace(/\*(.+?)\*/g,'<em>$1</em>');
+  h = h.replace(/\n\n/g,'</p><p>');
+  h = h.replace(/^- (.+)$/gm,'<li>$1</li>');
+  h = h.replace(/(<li>.*<\/li>\n?)+/g,'<ul>$&</ul>');
+  return '<p>'+h+'</p>';
+}
+
+function renderFileSidebar(){
+  const el = document.getElementById('fileSidebar');
+  if(aiGeneratedFiles.length === 0){
+    el.innerHTML = '<div class="fs-header">文件列表</div>';
+    return;
+  }
+  el.innerHTML = '<div class="fs-header">文件列表 ('+aiGeneratedFiles.length+')</div>' +
+    aiGeneratedFiles.map((f, i) => {
+      const ext = (f.name.split('.').pop()||'').toLowerCase();
+      const ico = ({'md':'Md','py':'Py','sh':'Sh','json':'{}','yml':'Y','yaml':'Y'})[ext] || ext.slice(0,2).toUpperCase();
+      const cls = ({'md':'md','py':'py','sh':'sh','json':'json','yml':'yml','yaml':'yaml'})[ext] || 'generic';
+      return '<div class="file-item'+(i===activeFileIndex?' active':'')+'" onclick="showFile('+i+')">'+
+        '<div class="fi-icon '+cls+'">'+ico+'</div>'+
+        '<div class="fi-info"><div class="fi-name">'+esc(f.name)+'</div><div class="fi-ext">.'+ext+'</div></div>'+
+        '</div>';
+    }).join('');
+}
+
+function showFile(idx){
+  if(idx < 0 || idx >= aiGeneratedFiles.length) return;
+  activeFileIndex = idx;
+  renderFileSidebar();
+  const f = aiGeneratedFiles[idx];
+  const lines = f.content.split('\n');
+  document.getElementById('fvTitle').innerHTML = '<code>'+esc(f.name)+'</code> '+(f.name==='SKILL.md'?'Skill 主文件':'');
+  document.getElementById('fvCode').innerHTML = lines.map((l,i)=>
+    '<div class="line"><span class="ln">'+(i+1)+'</span>'+esc(l)+'</div>'
+  ).join('');
+  document.getElementById('fvCode').style.display = '';
+  document.getElementById('fvEmpty').style.display = 'none';
+}
+
+async function sendMessage(){
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if(!text) return;
+  input.value = '';
+  aiChatMessages.push({role:'user', content:text});
+  renderChatMessages();
+
+  const btn = document.getElementById('chatSendBtn');
+  btn.disabled = true; btn.textContent = '...';
+
+  try{
+    const res = await fetch('/api/ai/generate', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({messages: aiChatMessages})
+    });
+    if(!res.ok){ const e=await res.json(); toast(e.detail||'生成失败','error'); btn.disabled=false; btn.textContent='发送'; return; }
+
+    aiChatMessages.push({role:'assistant', content:''});
+    renderChatMessages();
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    while(true){
+      const {done, value} = await reader.read();
+      if(done) break;
+      buf += decoder.decode(value, {stream:true});
+      const lines = buf.split('\n');
+      buf = lines.pop() || '';
+      for(const line of lines){
+        if(!line.startsWith('data: ')) continue;
+        try{
+          const data = JSON.parse(line.slice(6));
+          if(data.event === 'error'){
+            toast(data.message,'error');
+            btn.disabled = false; btn.textContent = '发送';
+            return;
+          }
+          if(data.event === 'text'){
+            aiChatMessages[aiChatMessages.length-1] = {role:'assistant', content: data.full};
+            renderChatMessages();
+          }
+          if(data.event === 'done'){
+            aiChatMessages[aiChatMessages.length-1] = {role:'assistant', content: data.text};
+            renderChatMessages();
+            if(data.files && data.files.length > 0){
+              aiGeneratedFiles = data.files;
+              aiSkillId = data.skill_id || '';
+              aiDescription = data.description || '';
+              activeFileIndex = 0;
+              renderFileSidebar();
+              showFile(0);
+              document.getElementById('createSkillBtn').style.visibility = 'visible';
+            } else {
+              aiGeneratedFiles = [];
+              renderFileSidebar();
+            }
+          }
+        }catch(e){}
+      }
+    }
+  }catch(e){ toast('网络错误','error'); }
+  btn.disabled = false; btn.textContent = '发送';
+}
+
+async function createAiSkill(){
+  if(aiGeneratedFiles.length === 0){ toast('没有可创建的文件','error'); return; }
+  isAiUpload = true;
+  pendingFiles = aiGeneratedFiles.map(f => new File([f.content], f.name, {type:'text/plain'}));
+  isFolderMode = true;
+  document.getElementById('uploadFileName').textContent = 'AI 生成 (' + aiGeneratedFiles.length + ' 个文件): ' + aiGeneratedFiles.map(f=>f.name).join(', ');
+  document.getElementById('uploadSkillId').value = aiSkillId || '';
+  document.getElementById('uploadDesc').value = aiDescription || '';
+  document.getElementById('uploadTags').value = '';
+  validateSkillId();
+  loadTagSuggestions('tagSuggestions', 'uploadTags');
+  document.getElementById('uploadPanel').classList.add('open');
+  document.getElementById('uploadOverlay').classList.add('open');
+}
+
+</script>
+</body>
+</html>
