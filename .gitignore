@@ -1,0 +1,6 @@
+config.json
+users.json
+skills/
+__pycache__/
+*.pyc
+venv/

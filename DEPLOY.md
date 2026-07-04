@@ -1,37 +1,43 @@
-# Skills Repository — Ubuntu 服务器部署指南
+# Skills Repository — 部署指南
 
 ## 环境要求
 
-- Ubuntu 20.04+ / 22.04 / 24.04
 - Python 3.9+
 - 端口 8080（可配置）
 
-## 1. 安装依赖
+---
+
+## 方式一：直接 Python 运行
+
+适用于开发测试或简单部署场景。
+
+### 1. 获取代码
 
 ```bash
-sudo apt update
-sudo apt install -y python3 python3-pip python3-venv
+git clone <repo-url>
+cd skills_repo
+
+# 或者将代码解压到目标目录
 ```
 
-## 2. 部署项目
+### 2. 安装依赖
 
 ```bash
-# 克隆项目（或其他方式获取代码）
-git clone <repo-url> /opt/skills_repo
-# 或者手动创建目录后复制文件：
-# mkdir -p /opt/skills_repo && cp -r . /opt/skills_repo/
+# 创建虚拟环境（可选但推荐）
+python3 -m venv venv
+source venv/bin/activate
 
-# 创建虚拟环境并安装依赖
-python3 -m venv /opt/skills_repo/venv
-/opt/skills_repo/venv/bin/pip install -r /opt/skills_repo/requirements.txt
-
-# 确保数据目录存在
-mkdir -p /opt/skills_repo/skills
+# 安装依赖
+pip install -r requirements.txt
 ```
 
-## 3. 配置
+### 3. 配置
 
-编辑 `/opt/skills_repo/config.json`：
+```bash
+cp config_template.json config.json
+```
+
+编辑 `config.json`：
 
 ```json
 {
@@ -39,19 +45,93 @@ mkdir -p /opt/skills_repo/skills
   "port": 8080,
   "auth_enabled": true,
   "default_user": "admin",
-  "server_version": "1.0.0"
+  "skills_dir": "skills",
+  "llm_api_url": "",
+  "llm_api_key": "",
+  "llm_model": ""
 }
 ```
 
-### 添加用户
+| 配置项 | 说明 | 默认值 |
+|--------|------|--------|
+| `host` | 监听地址 | `0.0.0.0` |
+| `port` | 监听端口 | `8080` |
+| `auth_enabled` | 是否启用认证 | `true` |
+| `default_user` | 默认管理员用户名 | `admin` |
+| `skills_dir` | Skill 存储目录，支持相对/绝对路径和 `~/` | `skills` |
+| `llm_api_url` | LLM API 地址（用于 AI 生成 Skill） | - |
+| `llm_api_key` | LLM API Key | - |
+| `llm_model` | LLM 模型名称 | - |
+
+`skills_dir` 配置的目录不存在时会自动创建。
+
+### 4. 启动
+
+```bash
+python server.py
+```
+
+首次启动会提示设置管理员密码。完成后访问 `http://localhost:8080`。
+
+### 5. 后台运行
+
+```bash
+# 使用 nohup
+nohup python server.py > server.log 2>&1 &
+
+# 或使用 screen / tmux
+screen -S skills_repo
+python server.py
+# Ctrl+A D 断开
+```
+
+### 6. 停止
+
+```bash
+pkill -f "python server.py"
+```
+
+---
+
+## 方式二：Systemd 生产部署
+
+适用于 Ubuntu/Debian 等 Linux 发行版的长期运行部署。
+
+### 1. 安装依赖
+
+```bash
+sudo apt update
+sudo apt install -y python3 python3-pip python3-venv
+```
+
+### 2. 部署项目
+
+```bash
+# 克隆项目到 /opt
+git clone <repo-url> /opt/skills_repo
+
+# 创建虚拟环境并安装依赖
+python3 -m venv /opt/skills_repo/venv
+/opt/skills_repo/venv/bin/pip install -r /opt/skills_repo/requirements.txt
+```
+
+### 3. 配置
+
+```bash
+cp /opt/skills_repo/config_template.json /opt/skills_repo/config.json
+```
+
+编辑 `/opt/skills_repo/config.json`，参考上面的配置说明。
+
+### 4. 添加用户
 
 ```bash
 /opt/skills_repo/venv/bin/python3 /opt/skills_repo/server.py --add-user
 ```
 
-## 4. Systemd 服务
+### 5. 创建 Systemd 服务
 
-创建服务文件 `/etc/systemd/system/skills-repo.service`：
+创建 `/etc/systemd/system/skills-repo.service`：
 
 ```ini
 [Unit]
@@ -73,7 +153,6 @@ WantedBy=multi-user.target
 启动服务：
 
 ```bash
-# 确保 www-data 对项目目录有读取权限
 sudo chown -R www-data:www-data /opt/skills_repo
 
 sudo systemctl daemon-reload
@@ -81,7 +160,7 @@ sudo systemctl enable --now skills-repo
 sudo systemctl status skills-repo
 ```
 
-常用管理命令：
+常用命令：
 
 ```bash
 sudo systemctl status skills-repo   # 查看状态
@@ -90,15 +169,17 @@ sudo systemctl stop skills-repo     # 停止
 sudo journalctl -u skills-repo -f   # 查看日志
 ```
 
-## 5. 防火墙
+---
+
+## 防火墙
 
 ```bash
 sudo ufw allow 8080/tcp
 ```
 
-## 6. Nginx 反向代理（可选）
+---
 
-生产环境建议加一层 Nginx：标准 80/443 端口、SSL 证书、静态缓存、请求过滤。
+## Nginx 反向代理（可选）
 
 ```bash
 sudo apt install -y nginx
@@ -131,7 +212,9 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-## 7. 验证
+---
+
+## 验证
 
 ```bash
 # 本地验证
@@ -141,32 +224,22 @@ curl http://localhost:8080/api/config
 curl http://<server-ip>:8080/api/config
 ```
 
-浏览器访问 `http://<server-ip>:8080` 即可进入 Web 界面。
+浏览器访问 `http://<server-ip>:8080` 进入 Web 界面。
 
-## 8. 更新升级
+---
+
+## 更新升级
 
 ```bash
 # 停止服务
 sudo systemctl stop skills-repo
+# 或直接 python 部署时：pkill -f "python server.py"
 
-# 替换 server.py 和 web/ 文件
+# 替换文件
 cp server.py /opt/skills_repo/
 cp -r web /opt/skills_repo/
 
 # 重启
 sudo systemctl start skills-repo
-```
-
-## 目录结构
-
-```
-/opt/skills_repo/
-├── server.py              # 后端入口
-├── requirements.txt       # Python 依赖
-├── venv/                  # Python 虚拟环境
-├── web/                   # 前端页面
-├── skills_repo_client/    # CLI 工具源文件
-├── skills/                # Skill 数据（自动创建）
-├── config.json            # 配置文件
-└── users.json             # 用户数据
+# 或：python server.py
 ```

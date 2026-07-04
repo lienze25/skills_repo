@@ -20,11 +20,6 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Stre
 
 app = FastAPI(title="Skills Repository")
 
-SKILLS_DIR = Path("skills")
-SKILLS_DIR.mkdir(exist_ok=True)
-SKILLS_INDEX_FILE = SKILLS_DIR / "skills_list.json"
-_index_lock = threading.RLock()
-
 web_dir = Path("web")
 web_dir.mkdir(exist_ok=True)
 APP_HTML = web_dir / "application.html"
@@ -35,8 +30,10 @@ SESSION_SECRET = secrets.token_hex(32)
 SESSION_MAX_AGE = timedelta(hours=24)
 
 CONFIG_FILE = Path("config.json")
-DEFAULT_CONFIG = {"host": "0.0.0.0", "port": 8080, "auth_enabled": True, "default_user": "admin", "server_version": "1.0.0",
-                  "llm_api_url": "", "llm_api_key": "", "llm_model": ""}
+SERVER_VERSION = "1.0.0"
+
+DEFAULT_CONFIG = {"host": "0.0.0.0", "port": 8080, "auth_enabled": True, "default_user": "admin",
+                   "llm_api_url": "", "llm_api_key": "", "llm_model": "", "skills_dir": "skills"}
 
 
 def _load_config() -> dict:
@@ -47,6 +44,13 @@ def _load_config() -> dict:
         except (json.JSONDecodeError, OSError):
             pass
     return cfg
+
+
+_config = _load_config()
+SKILLS_DIR = Path(os.path.expanduser(_config.get("skills_dir", "skills")))
+SKILLS_DIR.mkdir(exist_ok=True)
+SKILLS_INDEX_FILE = SKILLS_DIR / "skills_list.json"
+_index_lock = threading.RLock()
 
 
 SUPPORTED_EXTENSIONS = {".md", ".mdc"}
@@ -130,7 +134,9 @@ def optional_admin(session: Optional[str] = Cookie(None)) -> str:
 
 @app.get("/api/config")
 def api_config():
-    return _load_config()
+    cfg = _load_config()
+    cfg["server_version"] = SERVER_VERSION
+    return cfg
 
 
 @app.put("/api/config")

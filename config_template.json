@@ -3,7 +3,7 @@
   "port": 8080,
   "auth_enabled": true,
   "default_user": "admin",
-  "server_version": "1.0.0",
+  "skills_dir": "../skills",
   "llm_api_url": "https://api.deepseek.com",
   "llm_api_key": "sk-xxx",
   "llm_model": "deepseek-v4-pro"
