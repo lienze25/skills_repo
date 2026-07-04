@@ -9,7 +9,9 @@ import re
 import secrets
 import shutil
 import threading
+import time
 import zipfile
+from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import List, Optional
@@ -17,8 +19,27 @@ from typing import List, Optional
 import httpx
 from fastapi import Body, Cookie, Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
+from slowapi import Limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 app = FastAPI(title="Skills Repository")
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+
+_FAILED_ATTEMPTS_TRACKER: dict[str, list[float]] = defaultdict(list)
+_failed_lock = threading.Lock()
+_MAX_FAILED_ATTEMPTS = 10
+_FAILED_WINDOW = 300
+
+
+@app.exception_handler(RateLimitExceeded)
+async def _rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "Too many requests. Please try again later."},
+    )
 
 web_dir = Path("web")
 web_dir.mkdir(exist_ok=True)
@@ -355,13 +376,38 @@ async def login_page():
 
 
 @app.post("/api/login")
-async def api_login(username: str = Form(...), password: str = Form(...)):
+@limiter.limit("5/minute")
+async def api_login(request: Request, username: str = Form(...), password: str = Form(...)):
+    with _failed_lock:
+        now = time.time()
+        attempts = [t for t in _FAILED_ATTEMPTS_TRACKER.get(username, []) if now - t < _FAILED_WINDOW]
+        if len(attempts) >= _MAX_FAILED_ATTEMPTS:
+            print(f"[SECURITY] Account locked: {username} ({len(attempts)} failed attempts)")
+            raise HTTPException(
+                status_code=429,
+                detail="Too many failed attempts. Please try again later.",
+            )
+        _FAILED_ATTEMPTS_TRACKER[username] = attempts
+
     users = _load_users()
+    remote_addr = get_remote_address(request)
+
     if username not in users:
+        with _failed_lock:
+            _FAILED_ATTEMPTS_TRACKER[username].append(time.time())
+        print(f"[SECURITY] Failed login - unknown user: {username} from {remote_addr}")
         raise HTTPException(status_code=401, detail="Invalid username or password")
+
     user = users[username]
     if not _verify_password(password, user["password"], user["salt"]):
+        with _failed_lock:
+            _FAILED_ATTEMPTS_TRACKER[username].append(time.time())
+        print(f"[SECURITY] Failed login - wrong password for: {username} from {remote_addr}")
         raise HTTPException(status_code=401, detail="Invalid username or password")
+
+    with _failed_lock:
+        _FAILED_ATTEMPTS_TRACKER.pop(username, None)
+
     token = _create_session_token(username)
     response = JSONResponse({"ok": True, "username": username})
     response.set_cookie(
