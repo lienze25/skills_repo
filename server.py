@@ -54,7 +54,8 @@ CONFIG_FILE = Path("config.json")
 SERVER_VERSION = "1.0.0"
 
 DEFAULT_CONFIG = {"host": "0.0.0.0", "port": 8080, "auth_enabled": True, "default_user": "admin",
-                   "llm_api_url": "", "llm_api_key": "", "llm_model": "", "skills_dir": "skills"}
+                   "llm_api_url": "", "llm_api_key": "", "llm_model": "", "skills_dir": "skills",
+                   "icp_number": ""}
 
 
 def _load_config() -> dict:
@@ -163,7 +164,7 @@ def api_config():
 @app.put("/api/config")
 async def api_update_config(body: dict, _: str = Depends(optional_admin)):
     cfg = _load_config()
-    for key in ("auth_enabled", "llm_api_url", "llm_api_key", "llm_model"):
+    for key in ("auth_enabled", "llm_api_url", "llm_api_key", "llm_model", "icp_number"):
         if key in body:
             cfg[key] = body[key]
     CONFIG_FILE.write_text(json.dumps(cfg, ensure_ascii=False, indent=2), encoding="utf-8")

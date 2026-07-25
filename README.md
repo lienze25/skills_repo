@@ -30,9 +30,10 @@ python server.py
   "auth_enabled": true,
   "default_user": "admin",
   "skills_dir": "skills",
-  "llm_api_url": "",
-  "llm_api_key": "",
-  "llm_model": ""
+  "llm_api_url": "https://api.deepseek.com",
+  "llm_api_key": "sk-xxx",
+  "llm_model": "deepseek-v4-pro",
+  "icp_number": null
 }
 ```
 
@@ -46,6 +47,7 @@ python server.py
 | `llm_api_url` | LLM API 地址（用于 AI 生成 Skill） | - |
 | `llm_api_key` | LLM API Key | - |
 | `llm_model` | LLM 模型名称 | - |
+| `icp_number` | 网站备案号，`null` 或空时不显示 | - |
 
 `skills_dir` 配置的目录不存在时会自动创建。
 
